@@ -33,4 +33,4 @@ function timer(){
     setTime('.timer',getData(deadline));
 }
 
-module.exports = timer;
+export default timer;
