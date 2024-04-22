@@ -1,7 +1,9 @@
-function forms(){
+import {closeDisplay, openDisplay } from "./modal";
+import { postData } from "../services/services";
+function forms(formSelector, timerForModel){
     //Формы
 
-    const form = document.querySelectorAll('form');
+    const form = document.querySelectorAll(formSelector);
 
     const message = {
         loading: 'img/form/spinner.svg',
@@ -13,17 +15,7 @@ function forms(){
         bindPostData(item);
     });
 
-    const postData = async (url,data)=>{//минус fetch-a в том что промис который запускается с помошью него-не прейдет в состояние отклонено(rejected) изза ответа HTTP которая считается ошибкой(404 и т.д)
-        let res = await fetch (url,{
-                method:'POST',          //даже если форма не отправился промис отработает нормально (все равно отработает resolve), единственный что поменяется в ошибку - это статус
-                headers:{               //он выкинет ошибку толко тогда - когда что то помешал сделать запрос(например нет сети)
-                    'Content-Type':'application/json'
-                },
-                body:data
-            });
-        return await res.json();
-    };
-
+   
     
     
 
@@ -88,7 +80,7 @@ function forms(){
     function showThanks (message){
         const modalDialog = document.querySelector('.modal__dialog');
         modalDialog.style.display = 'none';         //надо просто скрыть, если удалим содержимое то потом использовать форму уже не сможем
-        openDisplay();
+        openDisplay('.modal', timerForModel);
         
         const thanksModal = document.createElement('div');
         thanksModal.classList.add('modal__dialog');
@@ -102,7 +94,7 @@ function forms(){
         setTimeout(()=>{
             thanksModal.remove();
             modalDialog.style.display = 'block';
-            closeDisplay();
+            closeDisplay('.modal');
         },4000)
 
     }

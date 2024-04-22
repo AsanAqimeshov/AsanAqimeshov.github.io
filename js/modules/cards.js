@@ -1,3 +1,5 @@
+import { getResource } from "../services/services";
+
 function cards(){
     class Menu{
         constructor(src,alt,title,descr,price,parentSelector,...classes){
@@ -44,13 +46,7 @@ function cards(){
             });
         });
 
-    async function getResource(url) {
-        let res = await fetch(url);
-        if (!res.ok) {              //если ответ от промиса - НЕ ОК (то есть если что то не так)
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-        }
-        return await res.json();
-    }
+    
 
 //     axios.get('http://localhost:3000/menu',)        //axios лучше тем что при необходимости сам преобразует из json формата, и проверки статуса
 //     .then(data => {                                 //по типу !res.ok уже заложен внутри и многие другие возможности...

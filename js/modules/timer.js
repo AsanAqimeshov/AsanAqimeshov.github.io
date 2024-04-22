@@ -1,5 +1,4 @@
-function timer(){
-    const deadline = '2024-05-27';
+function timer(id,deadline){
     function getData(input){
         const dt = Date.parse(input)-Date.parse(new Date);
         const day = Math.floor(dt/(1000*60*60*24));
@@ -30,7 +29,7 @@ function timer(){
             if(date.dt==0){clearInterval();}
         }
     }
-    setTime('.timer',getData(deadline));
+    setTime(id,getData(deadline));
 }
 
 export default timer;

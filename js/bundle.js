@@ -136,6 +136,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+/* harmony import */ var _services_services__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/services */ "./js/services/services.js");
+
+
 function cards(){
     class Menu{
         constructor(src,alt,title,descr,price,parentSelector,...classes){
@@ -175,20 +178,14 @@ function cards(){
         }
      }
 
-    getResource('http://localhost:3000/menu')
+    (0,_services_services__WEBPACK_IMPORTED_MODULE_0__.getResource)('http://localhost:3000/menu')
         .then(data => {
             data.forEach(({src,alt,title,descr,price}) => {      //серверден келген массивтың ішіндегі обьекттын свойстволарын диструктуризируем
                 new Menu(src,alt,title,descr,price, ".menu .container").render();   //сюда ставиться свойства тех обьектов
             });
         });
 
-    async function getResource(url) {
-        let res = await fetch(url);
-        if (!res.ok) {              //если ответ от промиса - НЕ ОК (то есть если что то не так)
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-        }
-        return await res.json();
-    }
+    
 
 //     axios.get('http://localhost:3000/menu',)        //axios лучше тем что при необходимости сам преобразует из json формата, и проверки статуса
 //     .then(data => {                                 //по типу !res.ok уже заложен внутри и многие другие возможности...
@@ -212,10 +209,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function forms(){
+/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modal */ "./js/modules/modal.js");
+/* harmony import */ var _services_services__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/services */ "./js/services/services.js");
+
+
+function forms(formSelector, timerForModel){
     //Формы
 
-    const form = document.querySelectorAll('form');
+    const form = document.querySelectorAll(formSelector);
 
     const message = {
         loading: 'img/form/spinner.svg',
@@ -227,17 +228,7 @@ function forms(){
         bindPostData(item);
     });
 
-    const postData = async (url,data)=>{//минус fetch-a в том что промис который запускается с помошью него-не прейдет в состояние отклонено(rejected) изза ответа HTTP которая считается ошибкой(404 и т.д)
-        let res = await fetch (url,{
-                method:'POST',          //даже если форма не отправился промис отработает нормально (все равно отработает resolve), единственный что поменяется в ошибку - это статус
-                headers:{               //он выкинет ошибку толко тогда - когда что то помешал сделать запрос(например нет сети)
-                    'Content-Type':'application/json'
-                },
-                body:data
-            });
-        return await res.json();
-    };
-
+   
     
     
 
@@ -271,7 +262,7 @@ function forms(){
             // console.log(Object.entries(t))
             // console.log(t)
 
-            postData('http://localhost:3000/requests',json)
+            (0,_services_services__WEBPACK_IMPORTED_MODULE_1__.postData)('http://localhost:3000/requests',json)
             .then(data=>{
                 console.log(data)
                 showThanks(message.success);
@@ -302,7 +293,7 @@ function forms(){
     function showThanks (message){
         const modalDialog = document.querySelector('.modal__dialog');
         modalDialog.style.display = 'none';         //надо просто скрыть, если удалим содержимое то потом использовать форму уже не сможем
-        openDisplay();
+        (0,_modal__WEBPACK_IMPORTED_MODULE_0__.openDisplay)('.modal', timerForModel);
         
         const thanksModal = document.createElement('div');
         thanksModal.classList.add('modal__dialog');
@@ -316,7 +307,7 @@ function forms(){
         setTimeout(()=>{
             thanksModal.remove();
             modalDialog.style.display = 'block';
-            closeDisplay();
+            (0,_modal__WEBPACK_IMPORTED_MODULE_0__.closeDisplay)('.modal');
         },4000)
 
     }
@@ -338,35 +329,48 @@ function forms(){
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   closeDisplay: () => (/* binding */ closeDisplay),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   openDisplay: () => (/* binding */ openDisplay)
 /* harmony export */ });
-function modal(){
-    //Modal-окно
-    const modalBtn = document.querySelectorAll('[data-modal]');
-    const modalBlock = document.querySelector('.modal');
-    // const modalClose = document.querySelector('[data-close]');
-    function openDisplay(){
-        modalBlock.style.display = 'block';
-        modalBlock.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';    //запрет на скролл страницы
+function openDisplay(modalSelector, timerForModel){
+    const modalBlock = document.querySelector(modalSelector);
+    modalBlock.style.display = 'block';
+    modalBlock.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';    //запрет на скролл страницы
+    console.log(timerForModel)      //для себя проверять как работает второй аргумент
+    if(timerForModel){
         clearInterval(timerForModel);
     }
-    modalBtn.forEach(el=>el.addEventListener('click',openDisplay));
+}
 
-    function closeDisplay(){
-        modalBlock.style.display = 'none';
-        document.body.style.overflow = '';
-    }
+function closeDisplay(modalSelector){
+    const modalBlock = document.querySelector(modalSelector);
+    modalBlock.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function modal(triggerSelector, modalSelector, timerForModel){
+    //Modal-окно
+    const modalBtn = document.querySelectorAll(triggerSelector);
+    const modalBlock = document.querySelector(modalSelector);
+    // const modalClose = document.querySelector('[data-close]');
+    
+
+    modalBtn.forEach(el=>el.addEventListener('click',()=>openDisplay(modalSelector, timerForModel)));  //когда в аргументе ненужно сразу вызывать но нужно передать аргумент то можем обернуть в коллбак
+
+   
 
     // modalClose.addEventListener('click',closeDisplay);
 
+    //сюда еще нужно написать при нажатий на место вне модуля модуль закрывается
+
     modalBlock.addEventListener('click', (event)=>{
         if(modalBlock===event.target || event.target.getAttribute('data-close') == ''){
-            closeDisplay();
+            closeDisplay(modalSelector);
         }
     });
 
-    const timerForModel = setTimeout(openDisplay,1000);     
 
  
 
@@ -383,7 +387,7 @@ function modal(){
 
     function modalInScroll(){
         if(window.pageYOffset+document.documentElement.clientHeight >=document.documentElement.scrollHeight){
-            openDisplay();
+            openDisplay(modalSelector, timerForModel);
             window.removeEventListener('scroll',modalInScroll);
         }
     }
@@ -392,6 +396,8 @@ function modal(){
 
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (modal);
+  //экспортируем их в модуль forms - так как их там тоже используем
+   //там мы их принимаем(импортируем)
 
 /***/ }),
 
@@ -572,22 +578,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function tabs(){
-    const tabs = document.querySelectorAll('.tabheader__item');         //менюшкадагы разделдар
-    const tabsContent = document.querySelectorAll('.tabcontent');       //сурет турган жер
-    const tabsParent = document.querySelector('.tabheader__items');     //общий блок менюшек
+function tabs(tabSelector,tabContent,tabParent,activTab){
+    const tabs = document.querySelectorAll(tabSelector);         //менюшкадагы разделдар
+    const tabsContent = document.querySelectorAll(tabContent);       //сурет турган жер
+    const tabsParent = document.querySelector(tabParent);     //общий блок менюшек
 
     function hideTabContent  (){
         tabsContent.forEach(item=>{         //суреттер блогында турган әр эдементтерді өшіре тұрдық
             item.style.display='none';
         });
         tabs.forEach(item =>{
-            item.classList.remove('tabheader__item_active');    //менюдегі әр разделдың активносттігін өшіріп шықтық
+            item.classList.remove(activTab);    //менюдегі әр разделдың активносттігін өшіріп шықтық
         });
     }
     function showTabContent(i = 0){                 //поумолчанию 0 турады деген сөз (es6-стандарт)
         tabsContent[i].style.display ='block';      //опроеделенный суретті көрсеттік
-        tabs[i].classList.add('tabheader__item_active');        //және соответствующий меню разделына активность костык
+        tabs[i].classList.add(activTab);        //және соответствующий меню разделына активность костык
     }
 
     hideTabContent();
@@ -595,7 +601,7 @@ function tabs(){
 
     tabsParent.addEventListener('click',(e)=>{      
         const target = e.target;
-        if(target && target.classList.contains('tabheader__item')){
+        if(target && target.classList.contains(tabSelector.slice(1))){
             tabs.forEach((el,i)=>{
                 if (target == el){
                     hideTabContent();       //сперва скрываем все элементы 
@@ -620,8 +626,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function timer(){
-    const deadline = '2024-05-27';
+function timer(id,deadline){
     function getData(input){
         const dt = Date.parse(input)-Date.parse(new Date);
         const day = Math.floor(dt/(1000*60*60*24));
@@ -652,10 +657,45 @@ function timer(){
             if(date.dt==0){clearInterval();}
         }
     }
-    setTime('.timer',getData(deadline));
+    setTime(id,getData(deadline));
 }
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (timer);
+
+
+/***/ }),
+
+/***/ "./js/services/services.js":
+/*!*********************************!*\
+  !*** ./js/services/services.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getResource: () => (/* binding */ getResource),
+/* harmony export */   postData: () => (/* binding */ postData)
+/* harmony export */ });
+const postData = async (url,data)=>{//минус fetch-a в том что промис который запускается с помошью него-не прейдет в состояние отклонено(rejected) изза ответа HTTP которая считается ошибкой(404 и т.д)
+    let res = await fetch (url,{
+            method:'POST',          //даже если форма не отправился промис отработает нормально (все равно отработает resolve), единственный что поменяется в ошибку - это статус
+            headers:{               //он выкинет ошибку толко тогда - когда что то помешал сделать запрос(например нет сети)
+                'Content-Type':'application/json'
+            },
+            body:data
+        });
+    return await res.json();
+};
+
+async function getResource(url) {
+    let res = await fetch(url);
+    if (!res.ok) {              //если ответ от промиса - НЕ ОК (то есть если что то не так)
+        throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+    }
+    return await res.json();
+}
+
+
 
 
 /***/ })
@@ -737,14 +777,17 @@ __webpack_require__.r(__webpack_exports__);
     
     
     
+    
 
 window.addEventListener('DOMContentLoaded',()=>{
-    (0,_modules_tabs__WEBPACK_IMPORTED_MODULE_0__["default"])();
-    (0,_modules_modal__WEBPACK_IMPORTED_MODULE_1__["default"])();
-    (0,_modules_timer__WEBPACK_IMPORTED_MODULE_2__["default"])();
+    const timerForModel = setTimeout(()=>(0,_modules_modal__WEBPACK_IMPORTED_MODULE_1__.openDisplay)('.modal',timerForModel),1000);     
+
+    (0,_modules_tabs__WEBPACK_IMPORTED_MODULE_0__["default"])('.tabheader__item', '.tabcontent', '.tabheader__items','tabheader__item_active');
+    (0,_modules_modal__WEBPACK_IMPORTED_MODULE_1__["default"])('[data-modal]','.modal', timerForModel);
+    (0,_modules_timer__WEBPACK_IMPORTED_MODULE_2__["default"])('.timer','2024-05-01');
     (0,_modules_cards__WEBPACK_IMPORTED_MODULE_3__["default"])();
     (0,_modules_calc__WEBPACK_IMPORTED_MODULE_4__["default"])();
-    (0,_modules_forms__WEBPACK_IMPORTED_MODULE_5__["default"])();
+    (0,_modules_forms__WEBPACK_IMPORTED_MODULE_5__["default"])('form',timerForModel);
     (0,_modules_slider__WEBPACK_IMPORTED_MODULE_6__["default"])();
 });
 })();
